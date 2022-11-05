@@ -14,31 +14,25 @@ class HomeController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    private $rest_api_url = 'http://simple-api.test/api/products';
+    private $rest_api_url = 'http://simple-api.test/api';
 
     public function index()
     {
-            /*  Validate the request */
-        $rules = [
-            'page' => 'numeric|min:0|not_in:0',
-            'page_size' => 'numeric|min:0|max:100|not_in:0'
-        ];
-        $validator = Validator::make(request()->all(), $rules);
-        if ($validator->fails()) {
-            return redirect(request()->url())->with('error', 'something went wrong!')->withErrors($validator)->withInput();
-        }
-        $validator->validated();
-
         /* Create url parameters */
         $url_param = http_build_query(request()->query());
-        $api_url = $url_param ? "{$this->rest_api_url}?{$url_param}" : $this->rest_api_url;
-        
-        /* Get data from REST API */
-        $response = json_decode(Http::acceptJson()->withToken(session()->get('user_token'))->get($api_url)->getBody()->getContents());
+        $api_url = $url_param ? "{$this->rest_api_url}/products?{$url_param}" : "{$this->rest_api_url}/products";
 
-        return view('home',[
-            'response' => $response
-        ]);
+        /* Get data from REST API */
+        $response = Http::acceptJson()->withToken(session()->get('user_token'))->get($api_url);
+
+
+        if ($response->successful()) {
+            $response = json_decode($response->getBody()->getContents());
+            return view('home', [
+                'response' => $response
+            ]);
+        }
+        return redirect(request()->url())->with('error', 'something went wrong!')->withInput();
     }
 
     /**
@@ -59,36 +53,22 @@ class HomeController extends Controller
      */
     public function store(Request $request)
     {
-        // $response = json_decode(Http::acceptJson()
-        //         ->withToken(session()->get('user_token'))
-        //         ->post($this->rest_api_url, $request->except('_token'))
-        //         ->getBody()
-        //         ->getContents());
-        
-        // if (isset($response->errors)) {
-        //     return back()->with([
-        //         'response' => $response,
-        //         'model' => 'create'
-        //     ])->withInput();
-        // }
-
         $response = Http::acceptJson()
             ->withToken(session()->get('user_token'))
-            ->post($this->rest_api_url, $request->except('_token'));
+            ->post("{$this->rest_api_url}/products", $request->except('_token'));
 
-        if ($response->failed()) {
+        if ($response->successful()) {
             $response = json_decode($response->getBody()->getContents());
+
             return back()->with([
                 'response' => $response,
-                'model' => 'create'
+                'success' => "{$request->name} has been added!",
             ])->withInput();
         }
-
         $response = json_decode($response->getBody()->getContents());
-
         return back()->with([
             'response' => $response,
-            'success' => "{$request->name} has been added!",
+            'model' => 'create'
         ])->withInput();
     }
 
@@ -123,36 +103,21 @@ class HomeController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // $response = json_decode(Http::acceptJson()
-        //     ->withToken(session()->get('user_token'))
-        //     ->put("{$this->rest_api_url}/{$id}", $request->except('_token'))
-        //     ->getBody()
-        //     ->getContents());
-
-        // if (isset($response->errors)) {
-        //     return back()->with([
-        //         'response' => $response,
-        //         'model' => 'edit'
-        //     ])->withInput();
-        // }
-
         $response = Http::acceptJson()
             ->withToken(session()->get('user_token'))
-            ->put("{$this->rest_api_url}/{$id}", $request->except('_token'));
+            ->put("{$this->rest_api_url}/products/{$id}", $request->except('_token'));
 
-        if ($response->failed()) {
+        if ($response->successful()) {
             $response = json_decode($response->getBody()->getContents());
             return back()->with([
                 'response' => $response,
-                'model' => 'edit'
+                'success' => "{$response->data->name} has been updated!",
             ])->withInput();
         }
-
         $response = json_decode($response->getBody()->getContents());
-
         return back()->with([
             'response' => $response,
-            'success' => "{$response->data->name} has been updated!",
+            'model' => 'edit'
         ])->withInput();
     }
 
@@ -166,13 +131,15 @@ class HomeController extends Controller
     {
         $response = Http::acceptJson()
             ->withToken(session()->get('user_token'))
-            ->delete($this->rest_api_url.'/'.request()->id, request()->except('_token'));
+            ->delete($this->rest_api_url . '/products/' . request()->id, request()->except('_token'));
 
-        $response = json_decode($response->getBody()->getContents());
-
-        return back()->with([
-            'response' => $response,
-            'success' => "{$response->data->name} has been deleted!",
-        ])->withInput();
+        if ($response->successful()) {
+            $response = json_decode($response->getBody()->getContents());
+            return back()->with([
+                'response' => $response,
+                'success' => "{$response->data->name} has been deleted!",
+            ])->withInput();
+        }
+        return redirect(request()->url())->with('error', 'something went wrong!')->withInput();
     }
 }
