@@ -128,7 +128,8 @@
     {{-- paginating --}}
     <div class="row mx-auto g-0">
         <div class="col-lg-4 mb-2">
-            Showing {{ $response->meta->from }} to {{ $response->meta->to }} of {{ $response->meta->total }} entries
+            Showing {{ $response->meta->from ?? 0 }} to {{ $response->meta->to }} of {{ $response->meta->total }}
+            entries
         </div>
         <div class="col">
             <ul class="pagination flex-wrap justify-content-lg-end">
