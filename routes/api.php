@@ -2,10 +2,6 @@
 
 use App\Http\Controllers\Api\AuthenticationController;
 use App\Http\Controllers\Api\ProductController;
-use App\Http\Resources\ProductResource;
-use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Route;
 
 /*

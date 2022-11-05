@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AuthenticationController;
-use App\Http\Controllers\HomeController;
+use App\Http\Livewire\Main\Login;
+use App\Http\Livewire\Main\Products;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,12 +16,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => 'is_token_exist'], function () {
-    Route::get('/', [AuthenticationController::class, 'index']);
-    Route::post('/', [AuthenticationController::class, 'login'])->name('login');
+    Route::get('/', Login::class)->name('login');
 });
 
 Route::group(['middleware' => 'is_login'], function () {
-    Route::resource('home', HomeController::class)->except(['show', 'create', 'edit']);
-    Route::post('logout', [AuthenticationController::class, 'logout']);
+    // Route::resource('home', HomeController::class)->except(['show', 'create', 'edit']);
+    Route::get('home', Products::class);
 });
-

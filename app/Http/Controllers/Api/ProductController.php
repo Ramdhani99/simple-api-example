@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -25,12 +26,15 @@ class ProductController extends Controller
 
     public function index()
     {
-        $this->rules = [
-            'page' => 'numeric|min:0|not_in:0',
-            'page_size' => 'numeric|min:0|max:100|not_in:0'
+        $rules = [
+            'page' => 'numeric|min:1|not_in:0',
+            'page_size' => ['numeric', Rule::in(['10', '25', '50', '100'])],
+            'sort_column' => 'required_with:sort_order',
+            'sort_order' => ['required_with:sort_column', Rule::in(['asc', 'desc'])],
+            's' => 'max:255',
         ];
 
-        $validateData = request()->validate($this->rules);
+        $validateData = request()->validate($rules);
 
         // $page = (request()->get('page') != null) ? $validateData['page'] : 1;
         $page_size = (request()->get('page_size') != null) ? $validateData['page_size'] : 10;
@@ -41,13 +45,12 @@ class ProductController extends Controller
         // using resource
         /* Change the api url to front end url */
         // $data = ProductResource::collection(Product::paginate($page_size))->setPath('http://simple-api.test/products');
-        
+
         /* withQueryString method if you would like to append all of the current request's query string values to the pagination links */
-        $data = ProductResource::collection(Product::filter(request(['s']))->paginate($page_size)->withQueryString());
+        $data = ProductResource::collection(Product::filter(request(['s', 'sort_column', 'sort_order']))->paginate($page_size)->withQueryString());
 
         //api response
         // return response()->json($data);
-        
         return response()->json([
             'message' => 'success',
             'data' => $data,
@@ -90,7 +93,7 @@ class ProductController extends Controller
     {
         // option 1
         // $request->validate($rules);
-        
+
         // Product::create([
         //     'name' => $request['name'],
         //     'price' => $request['price'],
@@ -109,7 +112,7 @@ class ProductController extends Controller
         $data = Product::findOrFail($getId);
 
         return response()->json([
-            'status' => 'success',
+            'message' => 'success',
             'data' => $data,
         ], 200);
     }
@@ -123,7 +126,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         return response()->json([
-            'status' => 'success',
+            'message' => 'success',
             'data' => $product,
         ], 200);
     }
@@ -149,11 +152,11 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validateData = $request->validate($this->rules);
-        
+
         $product->update($validateData);
 
         return response()->json([
-            'status' => 'success',
+            'message' => 'success',
             'data' => $product,
         ], 200);
     }
@@ -166,15 +169,10 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $this->rules = [
-            'id' => ['required', 'exists:products,id'],
-        ];
-        request()->validate($this->rules);
-
         $product->delete();
-        
+
         return response()->json([
-            'status' => 'success',
+            'message' => 'success',
             'data' => $product,
         ], 200);
     }
