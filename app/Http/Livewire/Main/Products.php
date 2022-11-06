@@ -82,9 +82,12 @@ class Products extends Component
     }
     public function sort($sort_column, $sort_order)
     {
+        if ($this->sort_column == $sort_column) {
+            $this->sort_order = $sort_order == 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sort_order = 'asc';
+        }
         $this->sort_column = $sort_column;
-        $this->sort_order = $sort_order;
-        $this->sort_order = $sort_order == 'asc' ? 'desc' : 'asc';
     }
 
     public function clear()
