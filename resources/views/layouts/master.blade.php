@@ -7,7 +7,7 @@
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
   </head>
 
-  <body style="background-color: rgb(52, 52, 52)">
+  <body>
     
     @if (session()->has('user_token'))
       <nav class="navbar navbar-expand-lg bg-light mb-3">
