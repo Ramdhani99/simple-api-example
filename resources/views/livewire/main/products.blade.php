@@ -15,14 +15,33 @@
         </div>
     </div>
     {{-- Show Form, Add Button & Search Form --}}
-    <div class="row mx-auto g-0">
-        {{-- Add Button --}}
-        <div class="col mb-2">
-            <button class=" btn btn-primary" type="button" wire:click="display_modal('create')">New data</button>
+    <div class="row g-2">
+        {{-- Add button --}}
+        <div class="col-auto me-auto mb-2">
+            <button type="button" class=" btn btn-primary" wire:click="display_modal('create')">New data</button>
         </div>
-        {{-- Show Select --}}
-        <div class="col-lg-1 col-md-2 mb-2 me-lg-2 me-md-2 me-sm-0">
-            {{-- <form wire:submit.prevent="destroy"> --}}
+        <div class="col-auto mb-2">
+            {{-- Bulk Action --}}
+            <div class="dropdown">
+                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Bulk Actions
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button type="button" class="dropdown-item" wire:click="delete_checked">
+                            Bulk Delete
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item" wire:click="export_checked">
+                            Bulk Export
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-1 col-md-2 col-sm-12 mb-1">
+            {{-- Page Size --}}
             <select class="form-select form-control" wire:change.defer="change_page_size($event.target.value)">
                 @php
                     $page_size_options = ['10', '25', '50', '100'];
@@ -33,8 +52,10 @@
                 @endforeach
             </select>
         </div>
-        {{-- Search --}}
-        <div class="col mb-2">
+        <div class="col-lg-4 col-md-4 col-sm-12 mb-2">
+            {{-- Search --}}
+            <input type="search" class="form-control" placeholder="Search..." wire:model.debounce.750ms="search"
+                value="{{ $this->search }}">
             {{-- <form wire:submit.prevent="search">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" placeholder="Search..." wire:model.defer="search"
@@ -42,20 +63,16 @@
                     <button class="btn btn-outline-secondary" type="submit">Search</button>
                 </div>
             </form> --}}
-            <input type="search" class="form-control" placeholder="Search..." wire:model.debounce.750ms="search"
-                value="{{ $this->search }}">
             {{-- <input type="text" class="form-control" placeholder="Search..." wire:model.lazy="search"
                         value="{{ $this->search }}"> --}}
         </div>
     </div>
-    @push('css')
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-    @endpush
-    {{ session('user_token') }}
+
     {{-- Table --}}
-    <table class="table table-sm table-striped align-middle">
+    <table class="table table-sm table-striped table-responsive align-middle">
         <thead class="table-light">
             <tr class="align-middle">
+                <th scope="col"><input class="form-check-input" type="checkbox" disabled></th>
                 <th scope="col">#</th>
                 {{-- <th scope="col">Name <button class="btn"><i class="bi bi-filter"></button></i></th>
                 <th scope="col">Price <button class="btn"><i class="bi bi-filter"></button></i></th> --}}
@@ -86,6 +103,8 @@
         <tbody>
             @forelse ($response->data as $data)
                 <tr>
+                    <td><input class="form-check-input" type="checkbox" wire:model.defer="bulk_check"
+                            value="{{ $data->id }}"></td>
                     <td>{{ $response->meta->from + $loop->iteration - 1 }}</td>
                     @foreach ($data as $key => $value)
                         @if ($key == 'id')
@@ -283,6 +302,7 @@
 
 @section('title', 'Home')
 @push('css')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('assets/vendor/toastify/toastify.css') }}">
 @endpush
 @push('scripts')

@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My Awesome Website | @yield('title')</title>
+    <title>{{ config('app.name') }} | @yield('title')</title>
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
     @livewireStyles
 
@@ -12,12 +12,12 @@
 
 </head>
 
-<body style="background-color: rgb(52, 52, 52)">
+<body>
 
     @livewire('layouts.topbar')
 
     <div class="container h-100">
-        @yield('content')
+        {{ $slot }}
     </div>
 
     <noscript>

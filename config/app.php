@@ -195,6 +195,9 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        //my export excel
+        Maatwebsite\Excel\ExcelServiceProvider::class,
+
     ],
 
     /*
@@ -211,8 +214,13 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
 
-        //My Custom Helpers
-        'SiteHelpers' => App\Helpers\SiteHelpers::class,
+        //my api helpers
+        'ApiHelpers' => App\Helpers\ApiHelpers::class,
+        //my web helpers
+        'WebHelpers' => App\Helpers\ApiHelpers::class,
+        //my export excel
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+
     ])->toArray(),
 
 ];

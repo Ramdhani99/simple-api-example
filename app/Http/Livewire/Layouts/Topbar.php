@@ -2,7 +2,7 @@
 
 namespace App\Http\Livewire\Layouts;
 
-use App\Http\Controllers\AuthenticationController;
+use App\Helpers\WebHelpers;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
@@ -19,7 +19,7 @@ class Topbar extends Component
     {
         $response = Http::acceptJson()->withToken(session()->get('user_token'))->post("{$this->rest_api_url}/logout");
 
-        if ($response->successful()) {
+        if (WebHelpers::endpoint_status($response) == 200) {
             session()->flush();
             session()->invalidate();
             session()->regenerateToken();

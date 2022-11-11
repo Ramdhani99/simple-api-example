@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\SiteHelpers;
+use App\Helpers\ApiHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
@@ -54,7 +54,7 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'success',
             'data' => $data,
-            'meta' => SiteHelpers::meta($data),
+            'meta' => ApiHelpers::meta($data),
             // 'meta' => [
             //     'current_page' => $data->currentPage(),
             //     'first_page_url' => $data->url(1),
@@ -174,6 +174,36 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'success',
             'data' => $product,
+        ], 200);
+    }
+
+    public function bulk_delete()
+    {
+        $rules = [
+            'id' => ['required', 'exists:products,id'],
+        ];
+        request()->validate($rules);
+        // dd(request()->id);
+        $data = Product::destroy(request()->id);
+
+        return response()->json([
+            'message' => 'success',
+            'data' => "{$data} data deleted!",
+        ], 200);
+    }
+
+    public function bulk_show()
+    {
+        $rules = [
+            'id' => ['required', 'exists:products,id'],
+        ];
+        request()->validate($rules);
+        // dd(request()->id);
+        $data = Product::whereIn('id', request()->id)->get();
+
+        return response()->json([
+            'message' => 'success',
+            'data' => $data,
         ], 200);
     }
 }

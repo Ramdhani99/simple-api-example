@@ -2,9 +2,8 @@
 
 namespace App\Helpers;
 
-use Illuminate\Support\Facades\Http;
 
-class SiteHelpers
+class ApiHelpers
 {
     public static function meta(object $data, array $except = null)
     {
@@ -27,9 +26,9 @@ class SiteHelpers
 
         /* Remove the array from options */
         if ($except) {
-            $results=[];
+            $results = [];
             foreach ($except as $except) {
-                if(array_key_exists($except, $options)){
+                if (array_key_exists($except, $options)) {
                     $results[] = $except;
                 }
                 unset($options[$except]);

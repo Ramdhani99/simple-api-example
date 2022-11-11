@@ -9,7 +9,7 @@
                 </button>
                 <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
                     <div class="navbar-nav">
-                        <span class="text-primary nav-link">Hello {{ session('user')->name }}</span>
+                        <span class="text-primary nav-link">Hello {{ session('user.name') }}</span>
                         {{-- Logout --}}
                         <div>
                             <div wire:loading.remove wire:target="logout">

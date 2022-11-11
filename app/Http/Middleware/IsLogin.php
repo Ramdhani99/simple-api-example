@@ -19,7 +19,7 @@ class IsLogin
     {
         // if(session()->get('user_token')) return redirect()->to('/product');
         
-        if(!session()->has('user_token')){
+        if(!session()->has('user.token')){
             session()->flash('error', 'Please login first!');
             return redirect('/');  
         }

@@ -2,7 +2,7 @@ let duration = 3000
 
 window.addEventListener('toastify_success', event => {
     Toastify({
-        text: event.detail.message,
+        text: event.detail.message == "" ? "Success!" : event.detail.message,
         duration: duration,
         close: true,
         // avatar: 'bi bi-check-lg',
@@ -16,7 +16,7 @@ window.addEventListener('toastify_success', event => {
 
 window.addEventListener('toastify_error', event => {
     Toastify({
-        text: event.detail.message,
+        text: event.detail.message == "" ? "Something went wrong!" : event.detail.message,
         duration: duration,
         close: true,
         // avatar: 'bi bi-exclamation-circle-fill',

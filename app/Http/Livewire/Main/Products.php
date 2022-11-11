@@ -2,8 +2,12 @@
 
 namespace App\Http\Livewire\Main;
 
+use App\Exports\ProductsExport;
+use App\Helpers\WebHelpers;
 use Illuminate\Support\Facades\Http;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class Products extends Component
 {
@@ -25,6 +29,8 @@ class Products extends Component
 
     // data form variable
     public $data_id, $name, $price;
+
+    public $bulk_check = [];
 
     public function render()
     {
@@ -55,17 +61,15 @@ class Products extends Component
         /* Get data from REST API */
         $response = Http::acceptJson()->withToken(session()->get('user_token'))->get($api_url);
 
-        if ($response->failed()) {
+        if (WebHelpers::endpoint_status($response) == 200) {
+            $response = json_decode($response->getBody()->getContents());
+        } else {
+            $response = json_decode($response->getBody()->getContents());
             redirect()->to(request()->url())->with('toastify_error', 'Something went wrong!');
         }
-
-        $response = json_decode($response->getBody()->getContents());
-
         return view('livewire.main.products', [
             'response' => $response,
-        ])
-            ->extends('layouts.master')
-            ->section('content');
+        ]);
     }
 
     public function change_page($page)
@@ -106,6 +110,14 @@ class Products extends Component
         $this->dispatchBrowserEvent('show_modal', ['modal' => $modal]);
     }
 
+    private function is_error(object $response)
+    {
+        if (WebHelpers::endpoint_status($response) != 200) {
+            $response = json_decode($response->getBody()->getContents());
+            $this->dispatchBrowserEvent('toastify_error', $response);
+        }
+    }
+
     public function store($modal)
     {
         $response = Http::acceptJson()
@@ -115,13 +127,11 @@ class Products extends Component
                 'price' => $this->price,
             ]);
 
-        if ($response->successful()) {
+        $this->is_error($response);
+        if (WebHelpers::endpoint_status($response) == 200) {
             $response = json_decode($response->getBody()->getContents());
             $this->dispatchBrowserEvent('toastify_success', ['message' => "{$response->data->name} is added!"]);
             $this->dispatchBrowserEvent('close_modal', ['modal' => $modal]);
-        } else {
-            $response = json_decode($response->getBody()->getContents());
-            $this->dispatchBrowserEvent('toastify_error', $response);
         }
     }
 
@@ -134,27 +144,68 @@ class Products extends Component
                 'price' => $this->price,
             ]);
 
-        if ($response->successful()) {
+        $this->is_error($response);
+        if (WebHelpers::endpoint_status($response) == 200) {
             $response = json_decode($response->getBody()->getContents());
             $this->dispatchBrowserEvent('toastify_success', ['message' => "{$response->data->name} is updated!"]);
             $this->dispatchBrowserEvent('close_modal', ['modal' => $modal]);
-        } else {
-            $response = json_decode($response->getBody()->getContents());
-            $this->dispatchBrowserEvent('toastify_error', $response);
         }
     }
     public function destroy($modal)
     {
         $response = Http::acceptJson()
             ->withToken(session()->get('user_token'))
-            ->delete("{$this->rest_api_url}/products/{$this->data_id}", request()->except('_token'));
-        if ($response->successful()) {
+            ->delete("{$this->rest_api_url}/products/{$this->data_id}");
+
+        $this->is_error($response);
+        if (WebHelpers::endpoint_status($response) == 200) {
             $response = json_decode($response->getBody()->getContents());
             $this->dispatchBrowserEvent('toastify_success', ['message' => "{$response->data->name} is deleted!"]);
             $this->dispatchBrowserEvent('close_modal', ['modal' => $modal]);
-        } else {
+        }
+    }
+    public function delete_checked()
+    {
+        $response = Http::acceptJson()
+            ->withToken(session()->get('user_token'))
+            ->post("{$this->rest_api_url}/products/bulk-delete", [
+                "id" => $this->bulk_check
+            ]);
+
+        $this->is_error($response);
+        if (WebHelpers::endpoint_status($response) == 200) {
+            $this->bulk_check = [];
             $response = json_decode($response->getBody()->getContents());
-            $this->dispatchBrowserEvent('toastify_error', $response);
+            $this->dispatchBrowserEvent('toastify_success', ['message' => "{$response->data}"]);
+        }
+    }
+    public function export_checked()
+    {
+        $response = Http::acceptJson()
+            ->withToken(session()->get('user_token'))
+            ->post("{$this->rest_api_url}/products/bulk-show", [
+                "id" => $this->bulk_check
+            ]);
+
+        $this->is_error($response);
+        if (WebHelpers::endpoint_status($response) == 200) {
+            $response = json_decode($response->getBody()->getContents());
+
+            // in foreach
+            // $header = [];
+            // foreach ($response->data[0] as $key => $value) {
+            //     array_push($header, ucwords(str_replace('_', ' ', strtolower(preg_replace('/(?<!\ )[A-Z]/', " $0", $key)))));
+            // }
+
+            // in collection
+            $header = collect($response->data[0])->keys()->map(
+                fn ($items) => ucwords(str_replace('_', ' ', strtolower(preg_replace('/(?<!\ )[A-Z]/', " $0", $items))))
+            )->toArray();
+
+            $id = $this->bulk_check;
+            $this->bulk_check = [];
+
+            return Excel::download(new ProductsExport($header, $response->data), 'Product [' . implode(' ', $id) . '].csv');
         }
     }
 }

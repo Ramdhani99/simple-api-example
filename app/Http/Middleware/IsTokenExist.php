@@ -16,8 +16,8 @@ class IsTokenExist
      */
     public function handle(Request $request, Closure $next)
     {
-        if(session()->has('user_token')){
-            return redirect('/home');  
+        if (session()->has('user.token')) {
+            return redirect('/home');
         }
         return $next($request);
     }

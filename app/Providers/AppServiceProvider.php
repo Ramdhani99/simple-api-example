@@ -13,8 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // register the SiteHelper
-        require_once app_path() . '\\Helpers\\SiteHelpers.php';
+        //
+        require_once app_path() . '\\Helpers\\ApiHelpers.php';
+        require_once app_path() . '\\Helpers\\WebHelpers.php';
     }
 
     /**
